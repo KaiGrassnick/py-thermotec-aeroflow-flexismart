@@ -1,5 +1,5 @@
 """Data Objects for the Python Thermotec AeroFlow® Library"""
-from utils import create_current_temperature, calculate_temperature_from_int, calculate_temperature_offset_from_int
+from .utils import create_current_temperature, calculate_temperature_from_int, calculate_temperature_offset_from_int
 
 
 class Temperature:

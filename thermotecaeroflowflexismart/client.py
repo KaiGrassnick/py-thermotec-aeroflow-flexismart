@@ -1,5 +1,5 @@
 """Client module for the Python Thermotec AeroFlow® Library"""
-from utils import (
+from .utils import (
     check_if_zone_exists,
     check_if_module_is_valid,
     calculate_int_from_temperature,
@@ -8,11 +8,11 @@ from utils import (
 )
 
 from datetime import datetime
-from communication import FlexiSmartGateway
-from exception import InvalidResponse, InvalidRequest
-from const import OPERATION, OPERATION_OK, OKAY
+from .communication import FlexiSmartGateway
+from .exception import InvalidResponse, InvalidRequest
+from .const import OPERATION, OPERATION_OK, OKAY
 
-from data_object import (
+from .data_object import (
     GatewayNetworkConfiguration,
     Temperature,
     GatewayData,

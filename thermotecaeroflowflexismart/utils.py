@@ -1,5 +1,5 @@
 """Util functions for the Python Thermotec AeroFlow® Library"""
-from exception import InvalidModule
+from .exception import InvalidModule
 
 
 def calculate_temperature_from_int(value: int) -> float:

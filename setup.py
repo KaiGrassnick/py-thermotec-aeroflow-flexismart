@@ -1,5 +1,5 @@
 """Setup file for the Python Thermotec AeroFlow® Library"""
-from thermotecaeroflowflexismart import __version__
+import thermotecaeroflowflexismart
 from setuptools import setup
 from os import path
 
@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='thermotecaeroflowflexismart',
-      version=__version__,
+      version=thermotecaeroflowflexismart.__version__,
       description='Python Thermotec AeroFlow® Library',
       long_description=long_description,
       long_description_content_type='text/markdown',
