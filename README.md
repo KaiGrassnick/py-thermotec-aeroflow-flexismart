@@ -5,6 +5,24 @@ Python Library to communicate with the Thermotec AeroFlow® FlexiSmart Gateway
 This is completly a private / community project and is __NOT__ related to the Company [`Thermotec AG`](https://thermotec.ag) in any way!<br>
 Use this Library / Client on your __own risk__. I am __NOT__ responsible for any __damage, data loss, error or malfunction!__
 
+## Why this Project
+When i got my Thermotec AeroFlow® heater i was quite pleased by the product, but i figured out that the `FlexiSmart Gateway` module was not quite "smart" (atleast not in the way i would think of "smart").
+
+Why do i think it's not smart?
+There are only 2 ways of communication with the Gateway:
+- The APP for the SmartPhone (Android / iOS)
+- Alexa Skill
+
+There are some nice features already build into the Heater itself. Like automatic window open detection.
+
+__BUT__ i have Door / Window sensors at every Door / Window, so i would like to directly control the heater and stop heating as long as the window(s) are open.
+
+Or i want to go automatically in the anti freeze mode if i'm not in the area of my house.
+
+There are many many many reasons why i want an API / Client / Direct way to communicate with the Gateway / Heater directly from my own network.
+
+My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i created this library / client project as a dependency for the hassio-integration.
+
 ## Features
 - All* functions which are available in the APP
   - Holiday Mode and Programming is currently not implemented
@@ -98,26 +116,6 @@ If your port is different then the default (6653), you can specify the port next
 - FlexiSmart Gateway: Subnet is always 255.255.255.0
   - This is unrelated to this Project, but maybe interesting to know
 
-
-## Why this Project
-When i got my Thermotec AeroFlow® heater i was quite pleased by the product, but i figured out that the `FlexiSmart Gateway` module was not quite "smart" (atleast not in the way i would think of "smart").
-
-Why do i think it's not smart?
-There are only 2 ways of communication with the Gateway:
-- The APP for the SmartPhone (Android / iOS)
-- Alexa Skill
-
-There are some nice features already build into the Heater itself. Like automatic window open detection.
-
-__BUT__ i have Door / Window sensors at every Door / Window, so i would like to directly control the heater and stop heating as long as the window(s) are open.
-
-Or i want to go automatically in the anti freeze mode if i'm not in the area of my house.
-
-&nbsp;
-
-There are many many many reasons why i want an API / Client / Direct way to communicate with the Gateway / Heater directly from my own network.
-
-My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i created this library / client project as a dependency for the hassio-integration.
 
 ## Note
 Any Trademark, Name or Product is only referenced, but this project does not hold any of these.
