@@ -17,4 +17,7 @@ setup(name='thermotecaeroflowflexismart',
       author='Kai Grassnick',
       author_email='py-thermotec-aeroflow-flexismart@kai-grassnick.de',
       license='GNU GPLv3',
-      packages=['thermotecaeroflowflexismart'])
+      packages=['thermotecaeroflowflexismart'],
+      install_requires=["asyncio_dgram"],
+      python_requires=">=3.7",
+      )

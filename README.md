@@ -1,4 +1,4 @@
-# py-thermotec-aeroflow-flexismart
+# thermotec-aeroflow-flexismart
 Python Library to communicate with the Thermotec AeroFlow® FlexiSmart Gateway
 
 ## Disclaimer:
