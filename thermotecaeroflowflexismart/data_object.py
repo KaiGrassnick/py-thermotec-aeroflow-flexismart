@@ -134,9 +134,9 @@ class HolidayData:
         self._current_temperature = create_current_temperature(int(data[0]), int(data[1]))
         self._target_temperature = calculate_temperature_from_int(int(data[2]))
         self._time = f"{data[3].zfill(2)}:{data[4].zfill(2)}:{data[5].zfill(2)}"
-        self._days = int(data[7])
-        self._end_time = f"{data[8].zfill(2)}:{data[9].zfill(2)}"
-        self._after_holiday_temperature = calculate_temperature_from_int(int(data[10]))
+        self._days = int(data[8])
+        self._end_time = f"{data[9].zfill(2)}:{data[10].zfill(2)}"
+        self._after_holiday_temperature = calculate_temperature_from_int(int(data[11]))
 
     def get_current_temperature(self) -> float:
         return self._current_temperature
