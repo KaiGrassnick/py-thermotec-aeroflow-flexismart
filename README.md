@@ -43,6 +43,9 @@ My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i cr
 - Temperature Offset
   - Read current value
   - Set value
+- Holiday Mode
+  - Read Current setting
+  - Enable / Disable
 - Boost
   - Read if Boost is active
   - Set Boost
@@ -100,19 +103,12 @@ If your port is different then the default (6653), you can specify the port next
 
 ## ToDo
 - add command to set Programing
-- add command for holiday mode
-- slow down the client to fix the: commands send to fast issue ( find pefect delay or set 0.1s )
 - add some more DTOs for some objects
 - add limits to some commands
   - eg. max temperature, etc. 
 
 
 ## Known issues
-- Commands send to fast
-  - if you issue the commands to fast, either the UDP-Client gets confused when reciving the responses or the Gateway has issues answering the requests correctly.
-    - You might get the wrong response for your command. Sometimes the second command would have the same response as the first command.
-  - How to solve this:
-    - Maybe add a delay of 0.1 seconds
 - FlexiSmart Gateway: Subnet is always 255.255.255.0
   - This is unrelated to this Project, but maybe interesting to know
 
