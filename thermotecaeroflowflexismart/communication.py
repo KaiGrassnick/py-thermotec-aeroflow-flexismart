@@ -37,6 +37,6 @@ class FlexiSmartGateway:
             response = await wait_for(task, timeout)
         except exceptions.TimeoutError:
             raise RequestTimeout
-        finally:
-            # print("Message: {}, Response: {}".format(message, response))
-            return response
+
+        # print("Message: {}, Response: {}".format(message, response))
+        return response

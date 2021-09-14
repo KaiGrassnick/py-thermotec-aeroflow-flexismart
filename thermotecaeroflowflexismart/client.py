@@ -30,6 +30,7 @@ class Client:
     # GatewayResponse: OP
     async def ping(self) -> bool:
         command = "PING"
+        result = False
 
         try:
             response = await self._gateway.send_message_get_response(command)
@@ -37,11 +38,9 @@ class Client:
             if not response.startswith(OPERATION):
                 raise InvalidResponse()
 
-            return True
-        except RequestTimeout:
-            return False
+            result = True
         finally:
-            return False
+            return result
 
     # Command: OPH...
     # GatewayResponse: OPOK,<>
