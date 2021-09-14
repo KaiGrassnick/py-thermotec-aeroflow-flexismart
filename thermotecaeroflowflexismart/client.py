@@ -17,7 +17,8 @@ from .data_object import (
     Temperature,
     GatewayData,
     GatewayDateTime,
-    ModuleData
+    ModuleData,
+    HolidayData
 )
 
 
@@ -417,7 +418,23 @@ class Client:
         return await self._set_smart_start(value, zone, module)
 
     # >>>>>>> Holiday <<<<<<< #
-    # TODO: Implement Holiday feature
+    async def get_zone_holiday_mode(self, zone: int) -> HolidayData:
+        return await self._get_holiday_mode(zone)
+
+    async def disable_zone_holiday_mode(self, zone: int) -> None:
+        return await self._disable_holiday_mode(zone)
+
+    async def set_zone_holiday_mode(self, zone: int, target_datetime: datetime, target_temperature: float) -> None:
+        return await self._set_holiday_mode(target_datetime, target_temperature, zone)
+
+    async def get_module_holiday_mode(self, zone: int, module: int) -> HolidayData:
+        return await self._get_holiday_mode(zone, module)
+
+    async def disable_module_holiday_mode(self, zone: int, module: int) -> None:
+        return await self._disable_holiday_mode(zone, module)
+
+    async def set_module_holiday_mode(self, zone: int, module: int, target_datetime: datetime, target_temperature: float) -> None:
+        return await self._set_holiday_mode(target_datetime, target_temperature, zone, module)
 
     # >>>>>>> Programming <<<<<<< #
     # TODO: Implement Programming feature
@@ -743,6 +760,99 @@ class Client:
             raise InvalidResponse()
 
         return None
+
+    # Command: D<zone_id>#<zone_module_count>#0#0*RH#<days>#<final_hour>#<final_minute>#<target_temperature_afterwards>/
+    # GatewayResponse: OK
+    async def _set_holiday_mode(self, target_datetime: datetime, temperature: float, zone: int, module: int = -1) -> None:
+        zones = await self.get_zones_with_module_count()
+
+        check_if_zone_exists(zones, zone)
+
+        operation = "D"
+        target_module = zones[(zone - 1)]
+
+        # if module was not -1 we verify the requested module
+        if module != -1:
+            check_if_module_is_valid(target_module, module)
+            operation = "R"
+            target_module = module
+
+        today = datetime.now()
+
+        days_to_target = (
+                (target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)) -
+                (today.replace(hour=0, minute=0, second=0, microsecond=0))
+        ).days
+
+        if days_to_target > 240:
+            raise InvalidRequest("Holiday Target Date can not exceed 240 Days")
+
+        if days_to_target <= 0:
+            raise InvalidRequest("Holiday Target Date needs to be at least one day in the future")
+
+        target_temperature = calculate_int_from_temperature(temperature)
+
+        command = f"{operation}#{zone}#{target_module}#0#0*RH#{days_to_target}#{target_datetime.hour}#{target_datetime.minute}#{target_temperature}/"
+        response = await self._gateway.send_message_get_response(command)
+
+        if not response.startswith(OKAY):
+            raise InvalidResponse()
+
+        return None
+
+    # Command: D<zone_id>#<zone_module_count>#0#0*RH#<days>#<final_hour>#<final_minute>#<target_temperature_afterwards>/
+    # GatewayResponse: OK
+    async def _disable_holiday_mode(self, zone: int, module: int = -1) -> None:
+        zones = await self.get_zones_with_module_count()
+
+        check_if_zone_exists(zones, zone)
+
+        operation = "D"
+        target_module = zones[(zone - 1)]
+
+        # if module was not -1 we verify the requested module
+        if module != -1:
+            check_if_module_is_valid(target_module, module)
+            operation = "R"
+            target_module = module
+
+        # anything above 240 disables the holiday mode
+        command = f"{operation}#{zone}#{target_module}#0#0*RH#0#0#0#251/"
+        response = await self._gateway.send_message_get_response(command)
+
+        if not response.startswith(OKAY):
+            raise InvalidResponse()
+
+        return None
+
+    # Command: D<zone_id>#<zone_module_count>#0#0*?RH
+    # GatewayResponse: OK
+    async def _get_holiday_mode(self, zone: int, module: int = -1) -> HolidayData:
+        zones = await self.get_zones_with_module_count()
+
+        check_if_zone_exists(zones, zone)
+
+        operation = "D"
+        target_module = zones[(zone - 1)]
+
+        # if module was not -1 we verify the requested module
+        if module != -1:
+            check_if_module_is_valid(target_module, module)
+            operation = "R"
+            target_module = module
+
+        command = f"{operation}#{zone}#{target_module}#0#0*?RH/"
+        response = await self._gateway.send_message_get_response(command)
+
+        status = OKAY
+        response_identifier = f"{status},RH,"
+
+        if not response.startswith(response_identifier):
+            raise InvalidResponse
+
+        data = response.replace(response_identifier, "").split(",")
+
+        return HolidayData(data)
 
     # Command: D<zone_id>#<zone_module_count>#0#0*?E#0#7/
     # GatewayResponse: OK

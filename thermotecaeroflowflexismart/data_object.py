@@ -119,6 +119,50 @@ class GatewayDateTime:
         return self._id
 
 
+class HolidayData:
+    _current_temperature: float = 0.0
+    _target_temperature: float = 0.0
+    _time: str = "00:00:00"
+    _days: int = -1
+    _end_time: str = "00:00"
+    _after_holiday_temperature: float = 0.0
+
+    def __init__(self, data):
+        self._set_data_from_array(data)
+
+    def _set_data_from_array(self, data) -> None:
+        self._current_temperature = create_current_temperature(int(data[0]), int(data[1]))
+        self._target_temperature = calculate_temperature_from_int(int(data[2]))
+        self._time = f"{data[3].zfill(2)}:{data[4].zfill(2)}:{data[5].zfill(2)}"
+        self._days = int(data[7])
+        self._end_time = f"{data[8].zfill(2)}:{data[9].zfill(2)}"
+        self._after_holiday_temperature = calculate_temperature_from_int(int(data[10]))
+
+    def get_current_temperature(self) -> float:
+        return self._current_temperature
+
+    def get_target_temperature(self) -> float:
+        return self._target_temperature
+
+    def get_after_holiday_temperature(self) -> float:
+        return self._after_holiday_temperature
+
+    def get_time(self) -> str:
+        return self._time
+
+    def get_days_left(self) -> int:
+        days = self._days
+        if days > 240:
+            days = 0
+        return days
+
+    def get_end_time(self) -> str:
+        return self._end_time
+
+    def is_holiday_mode_active(self) -> bool:
+        return self._days <= 240
+
+
 class ModuleData:
     _current_temperature: float = 0.0
     _target_temperature: float = 0.0
