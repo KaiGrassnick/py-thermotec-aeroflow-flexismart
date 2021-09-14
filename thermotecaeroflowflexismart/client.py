@@ -364,7 +364,7 @@ class Client:
         return await self._get_boost(zone, module)
 
     async def set_module_boost(self, zone: int, module: int, time: int) -> None:
-        return await self._set_anti_freeze_temperature(time, zone, module)
+        return await self._set_boost(time, zone, module)
 
     # >>>>>>> Window Open Detection <<<<<<< #
     async def is_zone_window_open_detection_enabled(self, zone: int) -> bool:
