@@ -1,6 +1,7 @@
 """Communication module for the Python Thermotec AeroFlow® Library"""
 from asyncio import wait_for, exceptions, sleep
 from asyncio_dgram import connect
+from .exception import RequestTimeout
 
 
 class FlexiSmartGateway:
@@ -35,7 +36,7 @@ class FlexiSmartGateway:
             await sleep(0.1)
             response = await wait_for(task, timeout)
         except exceptions.TimeoutError:
-            response = "TIME_OUT"
+            raise RequestTimeout
         finally:
             # print("Message: {}, Response: {}".format(message, response))
             return response

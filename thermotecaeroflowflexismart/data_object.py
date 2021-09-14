@@ -203,5 +203,8 @@ class ModuleData:
 
         return language
 
+    def get_device_identifier(self) -> str:
+        return f"{self._id0}.{self._id1}.{self._id2}.{self._id3}"
+
     def get_firmware_version(self) -> str:
         return self._fw_version

@@ -1,6 +1,10 @@
 """Custom Exceptions for the Python Thermotec AeroFlow® Library"""
 
 
+class RequestTimeout(Exception):
+    """Response was not received within specified timeframe"""
+
+
 class InvalidResponse(Exception):
     """Response was not as expected"""
 

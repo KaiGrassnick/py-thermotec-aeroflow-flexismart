@@ -9,7 +9,7 @@ from .utils import (
 
 from datetime import datetime
 from .communication import FlexiSmartGateway
-from .exception import InvalidResponse, InvalidRequest
+from .exception import InvalidResponse, InvalidRequest, RequestTimeout
 from .const import OPERATION, OPERATION_OK, OKAY
 
 from .data_object import (
@@ -29,12 +29,18 @@ class Client:
     # GatewayResponse: OP
     async def ping(self) -> bool:
         command = "PING"
-        response = await self._gateway.send_message_get_response(command)
 
-        if not response.startswith(OPERATION):
-            raise InvalidResponse()
+        try:
+            response = await self._gateway.send_message_get_response(command)
 
-        return True
+            if not response.startswith(OPERATION):
+                raise InvalidResponse()
+
+            return True
+        except RequestTimeout:
+            return False
+        finally:
+            return False
 
     # Command: OPH...
     # GatewayResponse: OPOK,<>
