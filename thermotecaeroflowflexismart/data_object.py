@@ -99,12 +99,15 @@ class GatewayDateTime:
         self._set_data_from_array(data)
 
     def _set_data_from_array(self, data):
-        self._time = f"{data[4].zfill(2)}:{data[5].zfill(2)}:{data[6].zfill(2)}"
+        self._time = f"{data[0].zfill(2)}:{data[1].zfill(2)}:{data[2].zfill(2)}"
         # self._day_of_week = int(data[3])  # should be calculated by date.
-        self._date = f"{data[0].zfill(2)}.{data[1].zfill(2)}.20{data[2].zfill(2)}"  # works this way till 2099 :D
+        self._date = f"{data[4].zfill(2)}.{data[5].zfill(2)}.20{data[6].zfill(2)}"  # works this way till 2099 :D
         # self._online = bool(data[7])  # not sure if this is online flag or something else
         self._ip = data[8]
         self._id = data[9]
+
+    def get_date_time_string(self) -> str:
+        return f"{self._date} {self._time}"
 
     def get_time(self) -> str:
         return self._time
