@@ -1,10 +1,16 @@
 """Communication module for the Python Thermotec AeroFlow® Library"""
+from random import randint
+
 from asyncio import wait_for, exceptions, sleep
+
 from asyncio_dgram import connect
+
 from .exception import RequestTimeout
 
 
 class FlexiSmartGateway:
+    _running: bool = False
+
     def __init__(self, host: str, port: int):
         self._host = host
         self._port = port
@@ -30,13 +36,26 @@ class FlexiSmartGateway:
 
     async def send_message_get_response(self, message: str, timeout: int = 3):
         task = self.__send_message_get_response(message)
-        response = "UNEXPECTED_ERROR"
         try:
-            # wait 100ms before every request
+            force_execution_max_count = 30
+            execution_attempt = 0
+            while self._running:
+                execution_attempt = execution_attempt + 1
+                if execution_attempt > force_execution_max_count:
+                    break
+
+                wait_time = (randint(1, 5) / 10)
+                await sleep(wait_time)
+
+            self._running = True
             await sleep(0.1)
             response = await wait_for(task, timeout)
+            # print("Message: {}, Response: {}".format(message, response))
+            self._running = False
+            return response
         except exceptions.TimeoutError:
+            self._running = False
             raise RequestTimeout
-
-        # print("Message: {}, Response: {}".format(message, response))
-        return response
+        except Exception:
+            self._running = False
+            return "UNEXPECTED_ERROR"
