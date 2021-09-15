@@ -2,30 +2,30 @@
 Python Library to communicate with the Thermotec AeroFlow® FlexiSmart Gateway
 
 ## Disclaimer:
-This is completly a private / community project and is __NOT__ related to the Company [`Thermotec AG`](https://thermotec.ag) in any way!<br>
+This is completely a private / community project and is __NOT__ related to the Company [`Thermotec AG`](https://thermotec.ag) in any way!<br>
 Use this Library / Client on your __own risk__. I am __NOT__ responsible for any __damage, data loss, error or malfunction!__
 
 ## Why this Project
-When i got my Thermotec AeroFlow® heater i was quite pleased by the product, but i figured out that the `FlexiSmart Gateway` module was not quite "smart" (atleast not in the way i would think of "smart").
+When I got my Thermotec AeroFlow® heater, I was quite pleased by the product, but I figured out that the `FlexiSmart Gateway` module was not quite "smart" (at least not in the way I would think of "smart").
 
-Why do i think it's not smart?
+Why do I think it's not smart?
 There are only 2 ways of communication with the Gateway:
 - The APP for the SmartPhone (Android / iOS)
 - Alexa Skill
 
 There are some nice features already build into the Heater itself. Like automatic window open detection.
 
-__BUT__ i have Door / Window sensors at every Door / Window, so i would like to directly control the heater and stop heating as long as the window(s) are open.
+__BUT__ I have Door / Window sensors at every Door / Window, so I would like to directly control the heater and stop heating as long as the window(s) are open.
 
-Or i want to go automatically in the anti freeze mode if i'm not in the area of my house.
+Or I want to go automatically in the anti freeze mode if I'm not in the area of my house.
 
-There are many many many reasons why i want an API / Client / Direct way to communicate with the Gateway / Heater directly from my own network.
+There are many many many reasons why I want an API / Client / Direct way to communicate with the Gateway / Heater directly from my own network.
 
-My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i created this library / client project as a dependency for the hassio-integration.
+My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so I created this library / client project as a dependency for the hassio-integration.
 
 ## Features
 - All* functions which are available in the APP
-  - Holiday Mode and Programming is currently not implemented
+  - Programming is currently not implemented
 
 - Temperature
   - Read Current Temperature
@@ -50,7 +50,7 @@ My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i cr
   - Read if Boost is active
   - Set Boost
 - Restart
-  - Reastart the Heater
+  - Restart the Heater
 - Register Heater
 - Zone
   - List Zones
@@ -72,13 +72,13 @@ My Setup is based on [HASS (Home Assistant)](https://home-assistant.io), so i cr
 Most Features are available for the whole Zone or for a specific Heater independently
 
 ### Special features (which are not available in the APP)
-- Controll each Heater independently or the whole Zone
+- Control each Heater independently or the whole Zone
   - specific Heater works even if in a zone with multiple Heaters 
 - Enable Boost
 
 
 ## How to use
-You need the IP adress of your Gateway
+You need the IP address of your Gateway
 - Use the APP (If you have the APP and you are in your local Network)
   - Open the APP -> Click on Configuration / Information
     - There you have your IP
@@ -87,33 +87,33 @@ You need the IP adress of your Gateway
 Require this Repository in your Project and use the Commands defined in the commands class
 
 Provide the IP to the function
-If your port is different then the default (6653), you can specify the port next to the ip in the function parameter
+If your Port is different from the default (6653), you can specify the port next to the ip in the function parameter
 
 
 ## How does it work / Restrictions
 - Communication via UDP
 - Direct communication in the Local Network
 - Internet is not necessary
-  - i personally have blocked the Gateway from accessing the Internet
+  - I personally have blocked the Gateway from accessing the Internet
 - Complete Async approach
 - Commands are build as functions to make it easy to use
 - APP etc. still works
   - no side effects of using this project beside the official App
-  - there might be more "sync" requests in the app, if you change zones
+  - there might be more "sync" requests in the app, e.g. if you change zones
 
 ## ToDo
-- add command to set Programing
+- add command for Programing
 - add some more DTOs for some objects
 - add limits to some commands
-  - eg. max temperature, etc. 
-
+  - max temperature, etc.
 
 ## Known issues
-- FlexiSmart Gateway: Subnet is always 255.255.255.0
+- FlexiSmart Gateway: Subnet is always 255.255.255.0. It does __NOT__ respect the DHCP information
   - This is unrelated to this Project, but maybe interesting to know
 
-
 ## Note
+This Project is Licenced under the GPL v3. This decision was made to keep this Project and any improvements Open Source.
+
 Any Trademark, Name or Product is only referenced, but this project does not hold any of these.
 
 - AeroFlow® is the Registered Trademark by [Thermotec AG](https://thermotec.ag)
