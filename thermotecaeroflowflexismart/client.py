@@ -1,4 +1,20 @@
 """Client module for the Python Thermotec AeroFlow® Library"""
+import logging
+from asyncio import sleep
+from datetime import datetime
+
+from .communication import FlexiSmartGateway
+from .const import OPERATION, OPERATION_OK, OKAY
+from .data_object import (
+    GatewayNetworkConfiguration,
+    Temperature,
+    GatewayData,
+    GatewayDateTime,
+    ModuleData,
+    HolidayData,
+    HomeAssistantModuleData
+)
+from .exception import InvalidResponse, InvalidRequest
 from .utils import (
     check_if_zone_exists,
     check_if_module_is_valid,
@@ -7,21 +23,11 @@ from .utils import (
     calculate_int_from_temperature_offset
 )
 
-from asyncio import sleep
-from datetime import datetime
-from .communication import FlexiSmartGateway
-from .exception import InvalidResponse, InvalidRequest
-from .const import OPERATION, OPERATION_OK, OKAY
+_LOGGER = logging.getLogger(__name__)
+INVALID_DEVICE_IDENTIFIER = "0.0.0.0"
 
-from .data_object import (
-    GatewayNetworkConfiguration,
-    Temperature,
-    GatewayData,
-    GatewayDateTime,
-    ModuleData,
-    HolidayData,
-    HomeAssistantData
-)
+
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class Client:
@@ -141,6 +147,8 @@ class Client:
     # Command: OPS3/
     # GatewayResponse: OPOK,OPS3,<module_count>,<...>
     async def get_zones_with_module_count(self) -> [int]:
+        _LOGGER.debug("fetch new zones")
+
         operation = "OPS3"
         command = f"{operation}/"
         response = await self._gateway.send_message_get_response(command)
@@ -278,8 +286,9 @@ class Client:
 
     # Command: OPMW<big_zone_id>,0/
     # GatewayResponse: OPOK
-    async def delete_zone(self, zone: int) -> None:
-        zones = await self.get_zones_with_module_count()
+    async def delete_zone(self, zone: int, zones: [int] = None) -> None:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 
@@ -298,8 +307,9 @@ class Client:
         return None
 
     # Command: R#<zone_id>#<zone_module_count>#0#0*?F/
-    async def get_module_data(self, zone: int, module: int) -> ModuleData:
-        zones = await self.get_zones_with_module_count()
+    async def get_module_data(self, zone: int, module: int, zones: [int] = None) -> ModuleData:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 
@@ -450,15 +460,9 @@ class Client:
         return await self._restart_module(zone, module)
 
     # >>>>>>> HomeAssistant <<<<<<< #
-    async def get_module_all_data(self, zone: int, module: int) -> HomeAssistantData:
-        return await self._get_all_data(zone, module)
-
-    # --------------------------------- #
-    # >>>>>>> Private functions <<<<<<< #
-    # --------------------------------- #
-
-    async def _get_all_data(self, zone: int, module: int) -> HomeAssistantData:
-        zones = await self.get_zones_with_module_count()
+    async def get_module_all_data(self, zone: int, module: int, zones: [int] = None) -> HomeAssistantModuleData:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 
@@ -466,8 +470,6 @@ class Client:
 
         check_if_module_is_valid(target_module, module)
 
-        temperature = await self.get_module_temperature(zone=zone, module=module)
-        await sleep(0.1)
         module_data = await self.get_module_data(zone=zone, module=module)
         await sleep(0.1)
         anti_freeze_temperature = await self.get_module_anti_freeze_temperature(zone=zone, module=module)
@@ -477,9 +479,59 @@ class Client:
         date_time = await self.get_date_time()
         await sleep(0.1)
 
-        return HomeAssistantData(temperature=temperature, module_data=module_data,
-                                 anti_freeze_temperature=anti_freeze_temperature, holiday_data=holiday_data,
-                                 date_time=date_time)
+        return HomeAssistantModuleData(zone_id=zone, module_id=module, module_data=module_data,
+                                       anti_freeze_temperature=anti_freeze_temperature, holiday_data=holiday_data,
+                                       date_time=date_time)
+
+    async def get_all_data(self) -> [HomeAssistantModuleData]:
+        date_time = await self.get_date_time()
+        zones = await self.get_zones_with_module_count()
+        _LOGGER.debug("Zones with modules: %s", ", ".join(map(str, zones)))
+
+        home_assistant_modules = []
+        zone = 0
+        for modules in zones:
+            zone = zone + 1
+            if modules == 0:
+                _LOGGER.debug("Zone: %s is empty. Skipping", zone)
+                continue
+
+            for module in range(1, (modules + 1)):
+                _LOGGER.debug("Zone: %s, Module: %s. Request module data", zone, module)
+
+                device_identifier = INVALID_DEVICE_IDENTIFIER
+                for attempt in range(4):  # UDP and Gateway are sometimes not 100% reliable. Retry 3 times
+                    module_data = await self.get_module_data(zone, module, zones)
+                    device_identifier = module_data.get_device_identifier()
+                    if device_identifier != INVALID_DEVICE_IDENTIFIER:
+                        break
+
+                if device_identifier == INVALID_DEVICE_IDENTIFIER:
+                    _LOGGER.warning("Could not uniquely identify module after 3 attempts. Skip this module")
+                    continue
+
+                _LOGGER.debug("Add module with Identifier: %s", device_identifier)
+
+                anti_freeze_temperature = await self._get_anti_freeze_temperature(zone=zone, module=module, zones=zones)
+                await sleep(0.1)
+                holiday_data = await self._get_holiday_mode(zone=zone, module=module, zones=zones)
+                await sleep(0.1)
+
+                home_assistant_module = HomeAssistantModuleData(
+                    zone_id=zone,
+                    module_id=module,
+                    module_data=module_data,
+                    anti_freeze_temperature=anti_freeze_temperature,
+                    holiday_data=holiday_data,
+                    date_time=date_time
+                )
+                home_assistant_modules.append(home_assistant_module)
+
+        return home_assistant_modules
+
+    # --------------------------------- #
+    # >>>>>>> Private functions <<<<<<< #
+    # --------------------------------- #
 
     # Command: OPZI199,<zone>,<module>/
     # GatewayResponse: OPOK
@@ -509,8 +561,9 @@ class Client:
 
     # Command: D<zone_id>#<zone_module_count>#0#0*?T/
     # GatewayResponse: OK,<current_temperature>,<current_temperature>,<target_temperature>
-    async def _get_temperature(self, zone: int, module: int = -1) -> Temperature:
-        zones = await self.get_zones_with_module_count()
+    async def _get_temperature(self, zone: int, module: int = -1, zones: [int] = None) -> Temperature:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 
@@ -617,8 +670,9 @@ class Client:
 
     # Command: D<zone_id>#<zone_module_count>#0#0*?E#1#20/
     # GatewayResponse: OK
-    async def _get_anti_freeze_temperature(self, zone: int, module: int = -1) -> float:
-        zones = await self.get_zones_with_module_count()
+    async def _get_anti_freeze_temperature(self, zone: int, module: int = -1, zones: [int] = None) -> float:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 
@@ -858,8 +912,9 @@ class Client:
 
     # Command: D<zone_id>#<zone_module_count>#0#0*?RH
     # GatewayResponse: OK
-    async def _get_holiday_mode(self, zone: int, module: int = -1) -> HolidayData:
-        zones = await self.get_zones_with_module_count()
+    async def _get_holiday_mode(self, zone: int, module: int = -1, zones: [int] = None) -> HolidayData:
+        if zones is None:
+            zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
 

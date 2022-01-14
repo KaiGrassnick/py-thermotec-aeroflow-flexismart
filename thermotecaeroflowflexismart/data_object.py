@@ -4,23 +4,28 @@ from __future__ import annotations
 from .utils import create_current_temperature, calculate_temperature_from_int, calculate_temperature_offset_from_int
 
 
-class HomeAssistantData:
+class HomeAssistantModuleData:
     def __init__(
             self,
-            temperature: Temperature,
+            zone_id: int,
+            module_id: int,
             module_data: ModuleData,
             anti_freeze_temperature: float,
             holiday_data: HolidayData,
             date_time: GatewayDateTime
     ):
-        self._temperature = temperature
+        self._zone_id = zone_id
+        self._module_id = module_id
         self._module_data = module_data
         self._anti_freeze_temperature = anti_freeze_temperature
         self._holiday_data = holiday_data
         self._date_time = date_time
 
-    def get_temperature(self) -> Temperature:
-        return self._temperature
+    def get_module_id(self) -> int:
+        return self._module_id
+
+    def get_zone_id(self) -> int:
+        return self._zone_id
 
     def get_module_data(self) -> ModuleData:
         return self._module_data
