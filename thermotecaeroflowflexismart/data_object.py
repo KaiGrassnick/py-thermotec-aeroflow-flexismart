@@ -1,5 +1,38 @@
 """Data Objects for the Python Thermotec AeroFlow® Library"""
+from __future__ import annotations
+
 from .utils import create_current_temperature, calculate_temperature_from_int, calculate_temperature_offset_from_int
+
+
+class HomeAssistantData:
+    def __init__(
+            self,
+            temperature: Temperature,
+            module_data: ModuleData,
+            anti_freeze_temperature: float,
+            holiday_data: HolidayData,
+            date_time: GatewayDateTime
+    ):
+        self._temperature = temperature
+        self._module_data = module_data
+        self._anti_freeze_temperature = anti_freeze_temperature
+        self._holiday_data = holiday_data
+        self._date_time = date_time
+
+    def get_temperature(self) -> Temperature:
+        return self._temperature
+
+    def get_module_data(self) -> ModuleData:
+        return self._module_data
+
+    def get_anti_freeze_temperature(self) -> float:
+        return self._anti_freeze_temperature
+
+    def get_holiday_data(self) -> HolidayData:
+        return self._holiday_data
+
+    def get_date_time(self) -> GatewayDateTime:
+        return self._date_time
 
 
 class Temperature:

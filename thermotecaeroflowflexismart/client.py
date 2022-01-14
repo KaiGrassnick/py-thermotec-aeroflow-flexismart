@@ -7,9 +7,10 @@ from .utils import (
     calculate_int_from_temperature_offset
 )
 
+from asyncio import sleep
 from datetime import datetime
 from .communication import FlexiSmartGateway
-from .exception import InvalidResponse, InvalidRequest, RequestTimeout
+from .exception import InvalidResponse, InvalidRequest
 from .const import OPERATION, OPERATION_OK, OKAY
 
 from .data_object import (
@@ -18,7 +19,8 @@ from .data_object import (
     GatewayData,
     GatewayDateTime,
     ModuleData,
-    HolidayData
+    HolidayData,
+    HomeAssistantData
 )
 
 
@@ -432,7 +434,8 @@ class Client:
     async def disable_module_holiday_mode(self, zone: int, module: int) -> None:
         return await self._disable_holiday_mode(zone, module)
 
-    async def set_module_holiday_mode(self, zone: int, module: int, target_datetime: datetime, target_temperature: float) -> None:
+    async def set_module_holiday_mode(self, zone: int, module: int, target_datetime: datetime,
+                                      target_temperature: float) -> None:
         return await self._set_holiday_mode(target_datetime, target_temperature, zone, module)
 
     # >>>>>>> Programming <<<<<<< #
@@ -446,9 +449,37 @@ class Client:
     async def restart_module(self, zone: int, module: int) -> ModuleData:
         return await self._restart_module(zone, module)
 
+    # >>>>>>> HomeAssistant <<<<<<< #
+    async def get_module_all_data(self, zone: int, module: int) -> HomeAssistantData:
+        return await self._get_all_data(zone, module)
+
     # --------------------------------- #
     # >>>>>>> Private functions <<<<<<< #
     # --------------------------------- #
+
+    async def _get_all_data(self, zone: int, module: int) -> HomeAssistantData:
+        zones = await self.get_zones_with_module_count()
+
+        check_if_zone_exists(zones, zone)
+
+        target_module = zones[(zone - 1)]
+
+        check_if_module_is_valid(target_module, module)
+
+        temperature = await self.get_module_temperature(zone=zone, module=module)
+        await sleep(0.1)
+        module_data = await self.get_module_data(zone=zone, module=module)
+        await sleep(0.1)
+        anti_freeze_temperature = await self.get_module_anti_freeze_temperature(zone=zone, module=module)
+        await sleep(0.1)
+        holiday_data = await self.get_module_holiday_mode(zone=zone, module=module)
+        await sleep(0.1)
+        date_time = await self.get_date_time()
+        await sleep(0.1)
+
+        return HomeAssistantData(temperature=temperature, module_data=module_data,
+                                 anti_freeze_temperature=anti_freeze_temperature, holiday_data=holiday_data,
+                                 date_time=date_time)
 
     # Command: OPZI199,<zone>,<module>/
     # GatewayResponse: OPOK
@@ -762,7 +793,8 @@ class Client:
 
     # Command: D<zone_id>#<zone_module_count>#0#0*RH#<days>#<final_hour>#<final_minute>#<target_temperature_afterwards>/
     # GatewayResponse: OK
-    async def _set_holiday_mode(self, target_datetime: datetime, temperature: float, zone: int, module: int = -1) -> None:
+    async def _set_holiday_mode(self, target_datetime: datetime, temperature: float, zone: int,
+                                module: int = -1) -> None:
         zones = await self.get_zones_with_module_count()
 
         check_if_zone_exists(zones, zone)
