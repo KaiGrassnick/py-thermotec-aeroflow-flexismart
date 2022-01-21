@@ -14,7 +14,7 @@ from .data_object import (
     HolidayData,
     HomeAssistantModuleData
 )
-from .exception import InvalidResponse, InvalidRequest
+from .exception import InvalidResponse, InvalidRequest, RequestTimeout
 from .utils import (
     check_if_zone_exists,
     check_if_module_is_valid,
@@ -25,9 +25,6 @@ from .utils import (
 
 _LOGGER = logging.getLogger(__name__)
 INVALID_DEVICE_IDENTIFIER = "0.0.0.0"
-
-
-# logging.basicConfig(level=logging.DEBUG)
 
 
 class Client:
@@ -497,35 +494,40 @@ class Client:
                 continue
 
             for module in range(1, (modules + 1)):
-                _LOGGER.debug("Zone: %s, Module: %s. Request module data", zone, module)
+                try:
+                    _LOGGER.debug("Zone: %s, Module: %s. Request module data", zone, module)
 
-                device_identifier = INVALID_DEVICE_IDENTIFIER
-                for attempt in range(4):  # UDP and Gateway are sometimes not 100% reliable. Retry 3 times
-                    module_data = await self.get_module_data(zone, module, zones)
-                    device_identifier = module_data.get_device_identifier()
-                    if device_identifier != INVALID_DEVICE_IDENTIFIER:
-                        break
+                    device_identifier = INVALID_DEVICE_IDENTIFIER
+                    for attempt in range(4):  # UDP and Gateway are sometimes not 100% reliable. Retry 3 times
+                        module_data = await self.get_module_data(zone, module, zones)
+                        device_identifier = module_data.get_device_identifier()
+                        if device_identifier != INVALID_DEVICE_IDENTIFIER:
+                            break
 
-                if device_identifier == INVALID_DEVICE_IDENTIFIER:
-                    _LOGGER.warning("Could not uniquely identify module after 3 attempts. Skip this module")
-                    continue
+                    if device_identifier == INVALID_DEVICE_IDENTIFIER:
+                        _LOGGER.warning("Could not uniquely identify module after 3 attempts. Skip this module")
+                        continue
 
-                _LOGGER.debug("Add module with Identifier: %s", device_identifier)
+                    _LOGGER.debug("Add module with Identifier: %s", device_identifier)
 
-                anti_freeze_temperature = await self._get_anti_freeze_temperature(zone=zone, module=module, zones=zones)
-                await sleep(0.1)
-                holiday_data = await self._get_holiday_mode(zone=zone, module=module, zones=zones)
-                await sleep(0.1)
+                    anti_freeze_temperature = await self._get_anti_freeze_temperature(zone=zone, module=module, zones=zones)
+                    await sleep(0.1)
+                    holiday_data = await self._get_holiday_mode(zone=zone, module=module, zones=zones)
+                    await sleep(0.1)
 
-                home_assistant_module = HomeAssistantModuleData(
-                    zone_id=zone,
-                    module_id=module,
-                    module_data=module_data,
-                    anti_freeze_temperature=anti_freeze_temperature,
-                    holiday_data=holiday_data,
-                    date_time=date_time
-                )
-                home_assistant_modules.append(home_assistant_module)
+                    home_assistant_module = HomeAssistantModuleData(
+                        zone_id=zone,
+                        module_id=module,
+                        module_data=module_data,
+                        anti_freeze_temperature=anti_freeze_temperature,
+                        holiday_data=holiday_data,
+                        date_time=date_time
+                    )
+                    home_assistant_modules.append(home_assistant_module)
+                except RequestTimeout:
+                    _LOGGER.warning(f"Timeout while fetching data for Module: {module} in Zone: {zone} - If this "
+                                    f"module does not exist anymore, remove it from the Gateway to improve "
+                                    f"performance and update speed")
 
         return home_assistant_modules
 
