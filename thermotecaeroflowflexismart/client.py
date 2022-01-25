@@ -480,12 +480,12 @@ class Client:
                                        anti_freeze_temperature=anti_freeze_temperature, holiday_data=holiday_data,
                                        date_time=date_time)
 
-    async def get_all_data(self) -> [HomeAssistantModuleData]:
+    async def get_all_data(self) -> dict[str, HomeAssistantModuleData]:
         date_time = await self.get_date_time()
         zones = await self.get_zones_with_module_count()
         _LOGGER.debug("Zones with modules: %s", ", ".join(map(str, zones)))
 
-        home_assistant_modules = []
+        home_assistant_modules = dict()
         zone = 0
         for modules in zones:
             zone = zone + 1
@@ -523,7 +523,7 @@ class Client:
                         holiday_data=holiday_data,
                         date_time=date_time
                     )
-                    home_assistant_modules.append(home_assistant_module)
+                    home_assistant_modules[device_identifier] = home_assistant_module
                 except RequestTimeout:
                     _LOGGER.warning(f"Timeout while fetching data for Module: {module} in Zone: {zone} - If this "
                                     f"module does not exist anymore, remove it from the Gateway to improve "

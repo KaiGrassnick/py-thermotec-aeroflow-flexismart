@@ -1,4 +1,4 @@
 """Init file for the Python Thermotec AeroFlow® Library"""
 
 from . import *
-__version__ = '0.0.11'
+__version__ = '0.0.12'
