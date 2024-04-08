@@ -1,6 +1,12 @@
 # thermotec-aeroflow-flexismart
 Python Library to communicate with the Thermotec AeroFlow® FlexiSmart Gateway
 
+### Note
+This project does not run standalone, just provides an API to interact with the `Flexismart Gateway`.
+- If you just want to control your Heaters, please visit my other Project (HASSIO Addon): [thermotec_aeroflow](https://github.com/KaiGrassnick/thermotec_aeroflow)
+- If you want to build a new Integration and need a library to control the heaters, this is the Project you could work with
+- If you want to fix communication issues or exted the featureset, this is the Project you could work with  
+
 ## Disclaimer:
 This is completely a private / community project and is __NOT__ related to the Company [`Thermotec AG`](https://thermotec.ag) in any way!<br>
 Use this Library / Client on your __own risk__. I am __NOT__ responsible for any __damage, data loss, error or malfunction!__
