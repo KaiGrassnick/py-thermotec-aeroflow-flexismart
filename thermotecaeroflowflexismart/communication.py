@@ -1,10 +1,7 @@
 """Communication module for the Python Thermotec AeroFlow® Library"""
 from random import randint
-
 from asyncio import wait_for, exceptions, sleep
-
 from asyncio_dgram import connect
-
 from .exception import RequestTimeout
 
 
@@ -18,21 +15,20 @@ class FlexiSmartGateway:
     async def __send_message_get_response(self, message: str):
         # Create a client for the gateway
         client = await connect((self._host, self._port))
-
-        # Send the encoded string to the desired gateway
-        await client.send(str.encode(message))
-
-        # (Hopefully) Get the response message from the gateway
-        data, remote_addr = await client.recv()
-
-        # Close socket manually after call to free the resources
-        client.close()
-
-        # Extract the message from the response and remove the null value at the end of the message
-        response_message = data.rstrip(b'\x00')
-
-        # Decode the message to a string and return
-        return response_message.decode()
+        try:
+            # Send the encoded string to the desired gateway
+            await client.send(str.encode(message))
+            # (Hopefully) Get the response message from the gateway
+            data, remote_addr = await client.recv()
+            # Close socket manually after call to free the resources
+            client.close()
+            # Extract the message from the response and remove the null value at the end of the message
+            response_message = data.rstrip(b'\x00')
+            # Decode the message to a string and return
+            return response_message.decode()
+        except Exception:
+            client.close()
+            raise
 
     async def send_message_get_response(self, message: str, timeout: int = 3):
         task = self.__send_message_get_response(message)
@@ -40,10 +36,9 @@ class FlexiSmartGateway:
             force_execution_max_count = 30
             execution_attempt = 0
             while self._running:
-                execution_attempt = execution_attempt + 1
+                execution_attempt += 1
                 if execution_attempt > force_execution_max_count:
                     break
-
                 wait_time = (randint(1, 5) / 10)
                 await sleep(wait_time)
 
@@ -55,7 +50,7 @@ class FlexiSmartGateway:
             return response
         except exceptions.TimeoutError:
             self._running = False
-            raise RequestTimeout
+            raise RequestTimeout()
         except Exception:
             self._running = False
             return "UNEXPECTED_ERROR"

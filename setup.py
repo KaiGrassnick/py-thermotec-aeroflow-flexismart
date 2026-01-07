@@ -19,5 +19,5 @@ setup(name='thermotecaeroflowflexismart',
       license='GNU GPLv3',
       packages=['thermotecaeroflowflexismart'],
       install_requires=["asyncio_dgram"],
-      python_requires=">=3.7",
+      python_requires=">=3.11",
       )

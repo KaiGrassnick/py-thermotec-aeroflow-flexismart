@@ -172,12 +172,12 @@ class HolidayData:
         self._set_data_from_array(data)
 
     def _set_data_from_array(self, data) -> None:
-        self._current_temperature = create_current_temperature(int(data[0]), int(data[1]))
-        self._target_temperature = calculate_temperature_from_int(int(data[2]))
-        self._time = f"{data[3].zfill(2)}:{data[4].zfill(2)}:{data[5].zfill(2)}"
-        self._days = int(data[8])
-        self._end_time = f"{data[9].zfill(2)}:{data[10].zfill(2)}"
-        self._after_holiday_temperature = calculate_temperature_from_int(int(data[11]))
+        self._current_temperature = create_current_temperature(int(data[1]), int(data[2]))
+        self._target_temperature = calculate_temperature_from_int(int(data[3]))
+        self._time = f"{data[4].zfill(2)}:{data[5].zfill(2)}:{data[6].zfill(2)}"
+        self._days = int(data[9])
+        self._end_time = f"{data[10].zfill(2)}:{data[11].zfill(2)}"
+        self._after_holiday_temperature = calculate_temperature_from_int(int(data[12]))
 
     def get_current_temperature(self) -> float:
         return self._current_temperature
