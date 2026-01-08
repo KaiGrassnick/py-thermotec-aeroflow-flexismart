@@ -1,7 +1,6 @@
 """Util functions for the Python Thermotec AeroFlow® Library"""
 from .exception import InvalidModule
 
-
 def calculate_temperature_from_int(value: int) -> float:
     if value > 128:
         return (value - 128) + 0.5
@@ -40,10 +39,9 @@ def create_current_temperature(main_value: int, second_value: int) -> float:
     return float(f"{main_value}.{second_value}")
 
 
-def check_if_zone_exists(zones, zone) -> None:
-    if len(zones) == 0:
-        raise Exception(f"Zone out of range. No existing zones")
-
+def check_if_zone_exists(zones: list[int] | None, zone: int) -> None:
+    if zones is None or len(zones) == 0:
+        raise Exception("Zone out of range. No existing zones")
     if zone <= 0 or zone > len(zones):
         min_zone = 1
         max_zone = len(zones)
