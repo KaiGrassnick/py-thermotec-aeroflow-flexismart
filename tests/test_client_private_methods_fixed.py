@@ -10,6 +10,10 @@ from thermotecaeroflowflexismart.data_object import (
     HolidayData, ModuleData,
 )
 
+@pytest.fixture(autouse=True)
+def mock_sleep():
+    with patch("thermotecaeroflowflexismart.client.sleep", new_callable=AsyncMock) as mock_sleep:
+        yield mock_sleep
 
 class TestClientPrivateTemperatureMethods:
     """Tests for private temperature-related methods"""
@@ -25,7 +29,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
 
-        result = await client._get_temperature(zone=1)
+        result = await client._get_temperature(zone=1, zones=None)
         assert isinstance(result, Temperature)
         assert result.get_current_temperature() == 18.8
         assert result.get_target_temperature() == 20.0
@@ -42,7 +46,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
 
-        result = await client._get_temperature(zone=1, module=1)
+        result = await client._get_temperature(zone=1, module=1, zones=None)
         assert isinstance(result, Temperature)
         assert result.get_current_temperature() == 18.8
         assert result.get_target_temperature() == 20.0
@@ -59,7 +63,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
         with pytest.raises(InvalidResponse):
-            await client._get_temperature(zone=1)
+            await client._get_temperature(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_get_temperature_decimal_value(self):
@@ -72,7 +76,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
 
-        result = await client._get_temperature(zone=1)
+        result = await client._get_temperature(zone=1, zones=None)
         assert result.get_current_temperature() == 20.5
         assert result.get_target_temperature() == 1.5
 
@@ -87,7 +91,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
 
-        await client._set_temperature(temperature=22.5, zone=1)
+        await client._set_temperature(temperature=22.5, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*T150/")
 
     @pytest.mark.asyncio
@@ -101,7 +105,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
         
-        await client._set_temperature(temperature=21.0, zone=1, module=1)
+        await client._set_temperature(temperature=21.0, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*T21/")
 
     @pytest.mark.asyncio
@@ -115,7 +119,7 @@ class TestClientPrivateTemperatureMethods:
             ]
         )
 
-        await client._set_temperature(temperature=21.5, zone=1)
+        await client._set_temperature(temperature=21.5, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*T149/")
 
     @pytest.mark.asyncio
@@ -130,7 +134,7 @@ class TestClientPrivateTemperatureMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_temperature(temperature=22.0, zone=1)
+            await client._set_temperature(temperature=22.0, zone=1, zones=None)
 
 
 class TestClientPrivateTemperatureOffsetMethods:
@@ -147,7 +151,7 @@ class TestClientPrivateTemperatureOffsetMethods:
             ]
         )
 
-        result = await client._get_temperature_offset(zone=1)
+        result = await client._get_temperature_offset(zone=1, zones=None)
         assert result == 1.0
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#0#9/")
 
@@ -162,7 +166,7 @@ class TestClientPrivateTemperatureOffsetMethods:
             ]
         )
         
-        result = await client._get_temperature_offset(zone=1, module=1)
+        result = await client._get_temperature_offset(zone=1, module=1, zones=None)
         assert result == 1.0
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#0#9/")
 
@@ -177,7 +181,7 @@ class TestClientPrivateTemperatureOffsetMethods:
             ]
         )
 
-        result = await client._get_temperature_offset(zone=1)
+        result = await client._get_temperature_offset(zone=1, zones=None)
         assert result == -1.0
 
     @pytest.mark.asyncio
@@ -192,7 +196,7 @@ class TestClientPrivateTemperatureOffsetMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._get_temperature_offset(zone=1)
+            await client._get_temperature_offset(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_temperature_offset_zone(self):
@@ -205,7 +209,7 @@ class TestClientPrivateTemperatureOffsetMethods:
             ]
         )
 
-        await client._set_temperature_offset(temperature=1.5, zone=1)
+        await client._set_temperature_offset(temperature=1.5, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#0#9#15/")
 
 
@@ -220,7 +224,7 @@ class TestClientPrivateTemperatureOffsetMethods:
             ]
         )
         
-        await client._set_temperature_offset(temperature=-1.0, zone=1, module=1)
+        await client._set_temperature_offset(temperature=-1.0, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*SEP#0#9#246/")
 
     @pytest.mark.asyncio
@@ -235,7 +239,7 @@ class TestClientPrivateTemperatureOffsetMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_temperature_offset(temperature=1.0, zone=1)
+            await client._set_temperature_offset(temperature=1.0, zone=1, zones=None)
 
 
 class TestClientPrivateAntiFreezeTemperatureMethods:
@@ -252,7 +256,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
             ]
         )
 
-        result = await client._get_anti_freeze_temperature(zone=1)
+        result = await client._get_anti_freeze_temperature(zone=1, zones=None)
         assert result == 5.0
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#1#20/")
 
@@ -267,7 +271,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
             ]
         )
 
-        result = await client._get_anti_freeze_temperature(zone=1, module=1)
+        result = await client._get_anti_freeze_temperature(zone=1, module=1, zones=None)
         assert result == 4.0
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#1#20/")
 
@@ -282,7 +286,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
             ]
         )
 
-        result = await client._get_anti_freeze_temperature(zone=1, module=1)
+        result = await client._get_anti_freeze_temperature(zone=1, module=1, zones=None)
         assert result == 5
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#1#20/")
 
@@ -298,7 +302,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._get_anti_freeze_temperature(zone=1)
+            await client._get_anti_freeze_temperature(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_anti_freeze_temperature_zone(self):
@@ -311,7 +315,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
             ]
         )
 
-        await client._set_anti_freeze_temperature(temperature=3.5, zone=1)
+        await client._set_anti_freeze_temperature(temperature=3.5, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#1#20#3/")
 
     @pytest.mark.asyncio
@@ -325,7 +329,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
             ]
         )
         
-        await client._set_anti_freeze_temperature(temperature=4.5, zone=1, module=1)
+        await client._set_anti_freeze_temperature(temperature=4.5, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*SEP#1#20#4/")
 
     @pytest.mark.asyncio
@@ -340,7 +344,7 @@ class TestClientPrivateAntiFreezeTemperatureMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_anti_freeze_temperature(temperature=5.0, zone=1)
+            await client._set_anti_freeze_temperature(temperature=5.0, zone=1, zones=None)
 
 
 class TestClientPrivateBoostMethods:
@@ -357,7 +361,7 @@ class TestClientPrivateBoostMethods:
             ]
         )
 
-        result = await client._get_boost(zone=1)
+        result = await client._get_boost(zone=1, zones=None)
         assert isinstance(result, int)
         assert result == 25
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#1#22/")
@@ -373,7 +377,7 @@ class TestClientPrivateBoostMethods:
             ]
         )
         
-        result = await client._get_boost(zone=1, module=1)
+        result = await client._get_boost(zone=1, module=1, zones=None)
         assert result == 25
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#1#22/")
 
@@ -388,7 +392,7 @@ class TestClientPrivateBoostMethods:
             ]
         )
 
-        result = await client._get_boost(zone=1, module=1)
+        result = await client._get_boost(zone=1, module=1, zones=None)
         assert result == 0
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#1#22/")
 
@@ -404,7 +408,7 @@ class TestClientPrivateBoostMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._get_boost(zone=1)
+            await client._get_boost(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_boost_zone(self):
@@ -417,7 +421,7 @@ class TestClientPrivateBoostMethods:
             ]
         )
 
-        await client._set_boost(time=30, zone=1)
+        await client._set_boost(time=30, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#1#22#6/")
 
     @pytest.mark.asyncio
@@ -431,7 +435,7 @@ class TestClientPrivateBoostMethods:
             ]
         )
         
-        await client._set_boost(time=60, zone=1, module=1)
+        await client._set_boost(time=60, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*SEP#1#22#12/")
 
     @pytest.mark.asyncio
@@ -446,7 +450,7 @@ class TestClientPrivateBoostMethods:
         )
 
         with pytest.raises(InvalidRequest):
-            await client._set_boost(time=999, zone=1)
+            await client._set_boost(time=999, zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_boost_invalid_response(self):
@@ -460,7 +464,7 @@ class TestClientPrivateBoostMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_boost(time=30, zone=1)
+            await client._set_boost(time=30, zone=1, zones=None)
 
 
 class TestClientPrivateWindowOpenDetectionMethods:
@@ -477,7 +481,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
 
-        result = await client._is_window_open_detection_enabled(zone=1)
+        result = await client._is_window_open_detection_enabled(zone=1, zones=None)
         assert result is True
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#0#6/")
 
@@ -492,7 +496,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
 
-        result = await client._is_window_open_detection_enabled(zone=1)
+        result = await client._is_window_open_detection_enabled(zone=1, zones=None)
         assert result is False
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#0#6/")
 
@@ -507,7 +511,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
         
-        result = await client._is_window_open_detection_enabled(zone=1, module=1)
+        result = await client._is_window_open_detection_enabled(zone=1, module=1, zones=None)
         assert result is True
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#0#6/")
 
@@ -523,7 +527,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._is_window_open_detection_enabled(zone=1)
+            await client._is_window_open_detection_enabled(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_window_open_detection_zone_enable(self):
@@ -536,7 +540,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
 
-        await client._set_window_open_detection(value=True, zone=1)
+        await client._set_window_open_detection(value=True, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#0#6#1/")
 
     @pytest.mark.asyncio
@@ -550,7 +554,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
 
-        await client._set_window_open_detection(value=False, zone=1)
+        await client._set_window_open_detection(value=False, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#0#6#0/")
 
     @pytest.mark.asyncio
@@ -564,7 +568,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
             ]
         )
         
-        await client._set_window_open_detection(value=True, zone=1, module=1)
+        await client._set_window_open_detection(value=True, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*SEP#0#6#1/")
 
     @pytest.mark.asyncio
@@ -579,7 +583,7 @@ class TestClientPrivateWindowOpenDetectionMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_window_open_detection(value=True, zone=1)
+            await client._set_window_open_detection(value=True, zone=1, zones=None)
 
 
 class TestClientPrivateSmartStartMethods:
@@ -597,7 +601,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
 
-        result = await client._is_smart_start_enabled(zone=1)
+        result = await client._is_smart_start_enabled(zone=1, zones=None)
         assert result is True
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#0#7/")
 
@@ -612,7 +616,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
 
-        result = await client._is_smart_start_enabled(zone=1)
+        result = await client._is_smart_start_enabled(zone=1, zones=None)
         assert result is False
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*?E#0#7/")
 
@@ -627,7 +631,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
         
-        result = await client._is_smart_start_enabled(zone=1, module=1)
+        result = await client._is_smart_start_enabled(zone=1, module=1, zones=None)
         assert result is True
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*?E#0#7/")
 
@@ -643,7 +647,7 @@ class TestClientPrivateSmartStartMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._is_smart_start_enabled(zone=1)
+            await client._is_smart_start_enabled(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_smart_start_zone_enable(self):
@@ -656,7 +660,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
 
-        await client._set_smart_start(value=True, zone=1)
+        await client._set_smart_start(value=True, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#0#7#1/")
 
     @pytest.mark.asyncio
@@ -670,7 +674,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
 
-        await client._set_smart_start(value=False, zone=1)
+        await client._set_smart_start(value=False, zone=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*SEP#0#7#0/")
 
     @pytest.mark.asyncio
@@ -684,7 +688,7 @@ class TestClientPrivateSmartStartMethods:
             ]
         )
         
-        await client._set_smart_start(value=True, zone=1, module=1)
+        await client._set_smart_start(value=True, zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*SEP#0#7#1/")
 
     @pytest.mark.asyncio
@@ -699,7 +703,7 @@ class TestClientPrivateSmartStartMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._set_smart_start(value=True, zone=1)
+            await client._set_smart_start(value=True, zone=1, zones=None)
 
 
 class TestClientPrivateHolidayModeMethods:
@@ -716,7 +720,7 @@ class TestClientPrivateHolidayModeMethods:
             ]
         )
 
-        result = await client._get_holiday_mode(zone=1)
+        result = await client._get_holiday_mode(zone=1, zones=None)
         assert isinstance(result, HolidayData)
         assert result.get_current_temperature() == 20.7
         assert result.get_target_temperature() == 16.0
@@ -738,7 +742,7 @@ class TestClientPrivateHolidayModeMethods:
             ]
         )
         
-        result = await client._get_holiday_mode(zone=1, module=1)
+        result = await client._get_holiday_mode(zone=1, module=1, zones=None)
         assert isinstance(result, HolidayData)
         assert result.get_current_temperature() == 10.7
         assert result.get_target_temperature() == 6.0
@@ -761,7 +765,7 @@ class TestClientPrivateHolidayModeMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._get_holiday_mode(zone=1)
+            await client._get_holiday_mode(zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_holiday_mode_zone(self):
@@ -780,11 +784,7 @@ class TestClientPrivateHolidayModeMethods:
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
             target_date = fake_now + timedelta(days=10)
 
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, zones=None)
 
             client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*RH#10#12#10#16/")
 
@@ -805,12 +805,7 @@ class TestClientPrivateHolidayModeMethods:
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
             target_date = fake_now + timedelta(days=10)
 
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1,
-                module=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, module=1, zones=None)
 
             client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*RH#10#12#10#16/")
 
@@ -828,11 +823,7 @@ class TestClientPrivateHolidayModeMethods:
         target_date = datetime.now() + timedelta(days=365)
 
         with pytest.raises(InvalidRequest):
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_holiday_mode_today(self):
@@ -848,11 +839,7 @@ class TestClientPrivateHolidayModeMethods:
         target_date = datetime.now()
 
         with pytest.raises(InvalidRequest):
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_holiday_mode_past(self):
@@ -868,11 +855,7 @@ class TestClientPrivateHolidayModeMethods:
         target_date = datetime.now() - timedelta(days=365)
 
         with pytest.raises(InvalidRequest):
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_set_holiday_mode_invalid_response(self):
@@ -888,11 +871,7 @@ class TestClientPrivateHolidayModeMethods:
         target_date = datetime.now() + timedelta(days=10)
 
         with pytest.raises(InvalidResponse):
-            await client._set_holiday_mode(
-                target_datetime=target_date,
-                temperature=16.0,
-                zone=1
-            )
+            await client._set_holiday_mode(target_datetime=target_date, temperature=16.0, zone=1, zones=None)
 
     @pytest.mark.asyncio
     async def test_disable_holiday_mode_zone(self):
@@ -905,7 +884,7 @@ class TestClientPrivateHolidayModeMethods:
             ]
         )
 
-        await client._disable_holiday_mode(zone=1)
+        await client._disable_holiday_mode(zone=1, zones=None)
 
         client._gateway.send_message_get_response.assert_awaited_with("D#1#1#0#0*RH#0#0#0#251/")
 
@@ -920,7 +899,7 @@ class TestClientPrivateHolidayModeMethods:
             ]
         )
         
-        await client._disable_holiday_mode(zone=1, module=1)
+        await client._disable_holiday_mode(zone=1, module=1, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*RH#0#0#0#251/")
 
     @pytest.mark.asyncio
@@ -935,7 +914,7 @@ class TestClientPrivateHolidayModeMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._disable_holiday_mode(zone=1)
+            await client._disable_holiday_mode(zone=1, zones=None)
 
 
 class TestClientPrivateRestartMethods:
@@ -952,7 +931,7 @@ class TestClientPrivateRestartMethods:
             ]
         )
 
-        result = await client._restart_module(zone=1, module=1)
+        result = await client._restart_module(zone=1, module=1, zones=None)
         assert isinstance(result, ModuleData)
         client._gateway.send_message_get_response.assert_awaited_with("R#1#1#0#0*-TU#0#0#0#0#2/")
 
@@ -968,7 +947,7 @@ class TestClientPrivateRestartMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._restart_module(zone=1, module=1)
+            await client._restart_module(zone=1, module=1, zones=None)
 
 
 class TestClientPrivateRegisterModuleMethods:
@@ -985,7 +964,7 @@ class TestClientPrivateRegisterModuleMethods:
             ]
         )
 
-        await client._register_module(zone=1, timeout=30)
+        await client._register_module(zone=1, timeout=30, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("OPZI199,1,1/", 30)
 
     @pytest.mark.asyncio
@@ -999,7 +978,7 @@ class TestClientPrivateRegisterModuleMethods:
             ]
         )
 
-        await client._register_module(zone=1, module=1, timeout=30)
+        await client._register_module(zone=1, module=1, timeout=30, zones=None)
         client._gateway.send_message_get_response.assert_awaited_with("OPZI199,1,1/", 30)
 
 
@@ -1015,4 +994,4 @@ class TestClientPrivateRegisterModuleMethods:
         )
 
         with pytest.raises(InvalidResponse):
-            await client._register_module(zone=1, timeout=30)
+            await client._register_module(zone=1, timeout=30, zones=None)

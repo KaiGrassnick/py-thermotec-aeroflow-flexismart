@@ -18,6 +18,10 @@ from thermotecaeroflowflexismart.data_object import (
 )
 from thermotecaeroflowflexismart.exception import InvalidResponse, RequestTimeout
 
+@pytest.fixture(autouse=True)
+def mock_sleep():
+    with patch("thermotecaeroflowflexismart.client.sleep", new_callable=AsyncMock) as mock_sleep:
+        yield mock_sleep
 
 class TestClientInitialization:
     """Tests for Client initialization"""
@@ -183,6 +187,8 @@ class TestHomeAssistantIntegration:
     async def test_get_all_data_utils_test(self):
         """Test get_all_data test utils"""
         client = Client(CLIENT_IP)
+
+        client.get_zones_with_module_count = AsyncMock(return_value=[])
 
         with pytest.raises(Exception):
             await client.get_module_all_data(1, 1, [])
@@ -467,7 +473,7 @@ class TestClientZones:
             ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "4", "8", "9", "10",
              "v201106"]))
 
-        result = await client.restart_module(1, 1)
+        result = await client.restart_module(zone=1, module=1, zones=None)
         assert isinstance(result, ModuleData)
         client._restart_module.assert_called_once()
 
