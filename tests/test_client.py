@@ -82,6 +82,44 @@ class TestHomeAssistantIntegration:
         assert result.get_date_time() == self.gateway_date_time
 
     @pytest.mark.asyncio
+    async def test_get_module_all_data_short(self):
+        """Test get_module_all_data with extended false"""
+        client = Client(CLIENT_IP)
+
+        client.get_zones_with_module_count = AsyncMock(return_value=self.zones)
+        client.get_module_data = AsyncMock(return_value=self.module_data)
+        client.get_module_anti_freeze_temperature = AsyncMock()
+        client.get_module_holiday_mode = AsyncMock()
+        client.get_date_time = AsyncMock()
+
+        result = await client.get_module_all_data(1, 1, None, False)
+        assert isinstance(result, HomeAssistantModuleData)
+        assert result.get_module_id() == 1
+        assert result.get_zone_id() == 1
+        assert isinstance(result.get_module_data(), ModuleData)
+        assert result.get_module_data() == self.module_data
+        assert result.get_anti_freeze_temperature() is None
+        assert result.get_holiday_data() is None
+        assert result.get_date_time() is None
+        client.get_date_time.assert_not_called()
+        client.get_module_holiday_mode.assert_not_called()
+        client.get_module_anti_freeze_temperature.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_get_module_all_data_with_zones(self):
+        """Test get_module_all_data with zones"""
+        client = Client(CLIENT_IP)
+
+        client.get_zones_with_module_count = AsyncMock()
+        client.get_module_data = AsyncMock(return_value=self.module_data)
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
+        client.get_date_time = AsyncMock(return_value=self.gateway_date_time)
+
+        await client.get_module_all_data(1, 1, [1,2,3])
+        client.get_zones_with_module_count.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_get_all_data_success(self):
         """Test get_all_data"""
         client = Client(CLIENT_IP)
@@ -105,12 +143,65 @@ class TestHomeAssistantIntegration:
                 ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "3", "1", "1", "3",
                  "v201106"]),
         ])
-        client._get_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
-        client._get_holiday_mode = AsyncMock(return_value=self.holiday_data)
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
 
         result = await client.get_all_data()
         assert isinstance(result, dict)
         assert len(result) == 6
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_with_zones(self):
+        """Test get_all_data with zones"""
+        client = Client(CLIENT_IP)
+        client.get_zones_with_module_count = AsyncMock()
+        client.get_date_time = AsyncMock(return_value=self.gateway_date_time)
+        client.get_module_data = AsyncMock(side_effect=[
+            self.module_data,
+        ])
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
+
+        result = await client.get_all_data([1])
+        assert isinstance(result, dict)
+        assert len(result) == 1
+        client.get_zones_with_module_count.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_short(self):
+        """Test get_all_data with extended false"""
+        client = Client(CLIENT_IP)
+        client.get_zones_with_module_count = AsyncMock(return_value=self.zones)
+        client.get_module_data = AsyncMock(side_effect=[
+            self.module_data,
+            ModuleData(
+                ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "2", "1", "1", "1",
+                 "v201106"]),
+            ModuleData(
+                ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "2", "1", "1", "2",
+                 "v201106"]),
+            ModuleData(
+                ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "3", "1", "1", "1",
+                 "v201106"]),
+            ModuleData(
+                ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "3", "1", "1", "2",
+                 "v201106"]),
+            ModuleData(
+                ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "3", "1", "1", "3",
+                 "v201106"]),
+        ])
+
+        client.get_module_anti_freeze_temperature = AsyncMock()
+        client.get_module_holiday_mode = AsyncMock()
+        client.get_date_time = AsyncMock()
+
+        result = await client.get_all_data(extended=False)
+        assert isinstance(result, dict)
+        assert len(result) == 6
+        client.get_date_time.assert_not_called()
+        client.get_module_holiday_mode.assert_not_called()
+        client.get_module_anti_freeze_temperature.assert_not_called()
+
 
     @pytest.mark.asyncio
     async def test_get_all_data_empty_zone(self):
@@ -127,8 +218,8 @@ class TestHomeAssistantIntegration:
                 ["18", "8", "19", "2", "50", "59", "3", "0", "0", "0", "0", "1", "1", "129", "0", "2", "1", "1", "2",
                  "v201106"])
         ])
-        client._get_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
-        client._get_holiday_mode = AsyncMock(return_value=self.holiday_data)
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
 
         result = await client.get_all_data()
         assert isinstance(result, dict)
@@ -155,8 +246,8 @@ class TestHomeAssistantIntegration:
             invalid_module,
             invalid_module
         ])
-        client._get_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
-        client._get_holiday_mode = AsyncMock(return_value=self.holiday_data)
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
 
         result = await client.get_all_data()
         assert isinstance(result, dict)
@@ -176,8 +267,8 @@ class TestHomeAssistantIntegration:
                  "v201106"]),
             RequestTimeout(),
         ])
-        client._get_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
-        client._get_holiday_mode = AsyncMock(return_value=self.holiday_data)
+        client.get_module_anti_freeze_temperature = AsyncMock(return_value=self.anti_freeze_temperature)
+        client.get_module_holiday_mode = AsyncMock(return_value=self.holiday_data)
 
         result = await client.get_all_data()
         assert isinstance(result, dict)

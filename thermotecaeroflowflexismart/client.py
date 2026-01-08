@@ -390,7 +390,7 @@ class Client:
         return await self._restart_module(zone, zones, module)
 
     # >>>>>>> HomeAssistant <<<<<<< #
-    async def get_module_all_data(self, zone: int, module: int, zones: list[int] | None = None) -> HomeAssistantModuleData:
+    async def get_module_all_data(self, zone: int, module: int, zones: list[int] | None = None, extended: bool = True) -> HomeAssistantModuleData:
         if zones is None or len(zones) == 0:
             zones = await self.get_zones_with_module_count()
             await sleep(0.1)
@@ -402,22 +402,34 @@ class Client:
         check_if_module_is_valid(target_module, module)
 
         module_data = await self.get_module_data(zone=zone, module=module)
-        await sleep(0.1)
-        anti_freeze_temperature = await self.get_module_anti_freeze_temperature(zone=zone, module=module)
-        await sleep(0.1)
-        holiday_data = await self.get_module_holiday_mode(zone=zone, module=module)
-        await sleep(0.1)
-        date_time = await self.get_date_time()
-        await sleep(0.1)
+
+        anti_freeze_temperature = None
+        holiday_data = None
+        date_time = None
+        if extended:
+            await sleep(0.1)
+            anti_freeze_temperature = await self.get_module_anti_freeze_temperature(zone=zone, module=module)
+            await sleep(0.1)
+            holiday_data = await self.get_module_holiday_mode(zone=zone, module=module)
+            await sleep(0.1)
+            date_time = await self.get_date_time()
+            await sleep(0.1)
 
         return HomeAssistantModuleData(zone_id=zone, module_id=module, module_data=module_data,
                                        anti_freeze_temperature=anti_freeze_temperature, holiday_data=holiday_data,
                                        date_time=date_time)
 
-    async def get_all_data(self) -> dict[str, HomeAssistantModuleData]:
-        date_time = await self.get_date_time()
-        zones = await self.get_zones_with_module_count()
+    async def get_all_data(self, zones: list[int] | None = None, extended: bool = True) -> dict[str, HomeAssistantModuleData]:
+        if zones is None or len(zones) == 0:
+            zones = await self.get_zones_with_module_count()
+            await sleep(0.1)
+
         _LOGGER.debug("Zones with modules: %s", ", ".join(map(str, zones)))
+
+        date_time = None
+        if extended:
+            date_time = await self.get_date_time() if extended else None
+            await sleep(0.1)
 
         home_assistant_modules = dict()
         zone = 0
@@ -445,11 +457,13 @@ class Client:
 
                     _LOGGER.debug("Add module with Identifier: %s", device_identifier)
 
-                    anti_freeze_temperature = await self._get_anti_freeze_temperature(zone=zone, zones=zones,
-                                                                                      module=module)
-                    await sleep(0.1)
-                    holiday_data = await self._get_holiday_mode(zone=zone, zones=zones, module=module)
-                    await sleep(0.1)
+                    anti_freeze_temperature = None
+                    holiday_data = None
+                    if extended:
+                        anti_freeze_temperature = await self.get_module_anti_freeze_temperature(zone=zone, zones=zones, module=module)
+                        await sleep(0.1)
+                        holiday_data = await self.get_module_holiday_mode(zone=zone, zones=zones, module=module)
+                        await sleep(0.1)
 
                     home_assistant_module = HomeAssistantModuleData(
                         zone_id=zone,

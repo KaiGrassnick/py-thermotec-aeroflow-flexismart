@@ -10,9 +10,9 @@ class HomeAssistantModuleData:
             zone_id: int,
             module_id: int,
             module_data: ModuleData,
-            anti_freeze_temperature: float,
-            holiday_data: HolidayData,
-            date_time: GatewayDateTime
+            anti_freeze_temperature: float | None,
+            holiday_data: HolidayData | None,
+            date_time: GatewayDateTime | None
     ):
         self._zone_id = zone_id
         self._module_id = module_id
@@ -30,13 +30,13 @@ class HomeAssistantModuleData:
     def get_module_data(self) -> ModuleData:
         return self._module_data
 
-    def get_anti_freeze_temperature(self) -> float:
+    def get_anti_freeze_temperature(self) -> float | None:
         return self._anti_freeze_temperature
 
-    def get_holiday_data(self) -> HolidayData:
+    def get_holiday_data(self) -> HolidayData | None:
         return self._holiday_data
 
-    def get_date_time(self) -> GatewayDateTime:
+    def get_date_time(self) -> GatewayDateTime | None:
         return self._date_time
 
 
